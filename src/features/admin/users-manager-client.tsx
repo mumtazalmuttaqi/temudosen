@@ -53,9 +53,11 @@ interface UserRow {
   } | null;
   lecturerProfile: {
     lecturerNumber: string;
+    nip: string | null;
     expertise: string;
     faculty: string;
     bio: string | null;
+    thesisRecommendations: string[];
   } | null;
 }
 
@@ -81,6 +83,7 @@ export function UsersManagerClient({
   const [formStudentNumber, setFormStudentNumber] = useState("");
   const [formProgramStudy, setFormProgramStudy] = useState("");
   const [formLecturerNumber, setFormLecturerNumber] = useState("");
+  const [formNip, setFormNip] = useState("");
   const [formExpertise, setFormExpertise] = useState("");
   const [formFaculty, setFormFaculty] = useState("");
   const [formBio, setFormBio] = useState("");
@@ -91,6 +94,7 @@ export function UsersManagerClient({
   const [editStatus, setEditStatus] = useState<UserStatus>("ACTIVE");
   const [editFaculty, setEditFaculty] = useState("");
   const [editProgramStudy, setEditProgramStudy] = useState("");
+  const [editNip, setEditNip] = useState("");
   const [editExpertise, setEditExpertise] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
@@ -104,7 +108,7 @@ export function UsersManagerClient({
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams({ page: String(page), limit: "15" });
+        const params = new URLSearchParams({ page: String(page), limit: "30" });
         if (q.trim()) params.set("q", q.trim());
         if (fixedRole) params.set("role", fixedRole);
         else if (role !== "ALL") params.set("role", role);
@@ -143,6 +147,7 @@ export function UsersManagerClient({
     setEditStatus(user.status);
     setEditFaculty(user.studentProfile?.faculty ?? user.lecturerProfile?.faculty ?? "");
     setEditProgramStudy(user.studentProfile?.programStudy ?? "");
+    setEditNip(user.lecturerProfile?.nip ?? "");
     setEditExpertise(user.lecturerProfile?.expertise ?? "");
   }
 
@@ -169,6 +174,7 @@ export function UsersManagerClient({
           ...(formRole === "LECTURER"
             ? {
                 lecturerNumber: formLecturerNumber,
+                nip: formNip || null,
                 expertise: formExpertise,
                 faculty: formFaculty,
                 bio: formBio,
@@ -189,6 +195,7 @@ export function UsersManagerClient({
       setFormStudentNumber("");
       setFormProgramStudy("");
       setFormLecturerNumber("");
+      setFormNip("");
       setFormExpertise("");
       setFormFaculty("");
       setFormBio("");
@@ -213,6 +220,7 @@ export function UsersManagerClient({
         payload.programStudy = editProgramStudy;
         payload.faculty = editFaculty;
       } else if (editTarget.role === "LECTURER") {
+        payload.nip = editNip.trim() || null;
         payload.expertise = editExpertise;
         payload.faculty = editFaculty;
       }
@@ -371,9 +379,13 @@ export function UsersManagerClient({
                           NIM {u.studentProfile.studentNumber} • {u.studentProfile.programStudy}
                         </>
                       ) : u.lecturerProfile ? (
-                        <>
-                          NIDN {u.lecturerProfile.lecturerNumber} • {u.lecturerProfile.faculty}
-                        </>
+                        <div>
+                          <p>
+                            NIDN {u.lecturerProfile.lecturerNumber}
+                            {u.lecturerProfile.nip ? ` • NIP ${u.lecturerProfile.nip}` : ""}
+                          </p>
+                          <p className="text-[11px] text-slate-500">{u.lecturerProfile.faculty}</p>
+                        </div>
                       ) : (
                         <span>Akun Pengelola Sistem</span>
                       )}
@@ -516,7 +528,7 @@ export function UsersManagerClient({
               {formRole === "LECTURER" ? (
                 <>
                   <div className="space-y-1.5">
-                    <Label htmlFor="cu-nidn">NIDN / NIP</Label>
+                    <Label htmlFor="cu-nidn">NIDN</Label>
                     <Input
                       id="cu-nidn"
                       value={formLecturerNumber}
@@ -525,6 +537,14 @@ export function UsersManagerClient({
                     />
                   </div>
                   <div className="space-y-1.5">
+                    <Label htmlFor="cu-nip">NIP (Opsional)</Label>
+                    <Input
+                      id="cu-nip"
+                      value={formNip}
+                      onChange={(e) => setFormNip(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="cu-lfac">Fakultas</Label>
                     <Input
                       id="cu-lfac"
@@ -623,11 +643,11 @@ export function UsersManagerClient({
             {editTarget?.role === "LECTURER" ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="eu-exp">Bidang Keahlian</Label>
+                  <Label htmlFor="eu-nip">NIP</Label>
                   <Input
-                    id="eu-exp"
-                    value={editExpertise}
-                    onChange={(e) => setEditExpertise(e.target.value)}
+                    id="eu-nip"
+                    value={editNip}
+                    onChange={(e) => setEditNip(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -636,6 +656,14 @@ export function UsersManagerClient({
                     id="eu-lfac"
                     value={editFaculty}
                     onChange={(e) => setEditFaculty(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="eu-exp">Bidang Keahlian</Label>
+                  <Input
+                    id="eu-exp"
+                    value={editExpertise}
+                    onChange={(e) => setEditExpertise(e.target.value)}
                   />
                 </div>
               </div>

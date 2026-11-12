@@ -62,7 +62,9 @@ async function LecturerDashboardContent() {
         <div>
           <h2 className="text-xl font-bold text-slate-900">Selamat datang, {user.name}</h2>
           <p className="mt-1 text-sm text-slate-600">
-            NIDN/NIP {user.lecturerProfile?.lecturerNumber} • {user.lecturerProfile?.faculty}
+            NIDN {user.lecturerProfile?.lecturerNumber}
+            {user.lecturerProfile?.nip ? ` • NIP ${user.lecturerProfile.nip}` : ""} •{" "}
+            {user.lecturerProfile?.faculty}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

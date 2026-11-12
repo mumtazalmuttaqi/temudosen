@@ -28,10 +28,12 @@ export interface AuthenticatedUser {
   lecturerProfile: {
     id: string;
     lecturerNumber: string;
+    nip: string | null;
     expertise: string;
     faculty: string;
     bio: string | null;
     avatarUrl: string | null;
+    thesisRecommendations: string[];
   } | null;
 }
 
@@ -117,10 +119,12 @@ export const getCurrentUser = cache(async (): Promise<AuthenticatedUser | null> 
         select: {
           id: true,
           lecturerNumber: true,
+          nip: true,
           expertise: true,
           faculty: true,
           bio: true,
           avatarUrl: true,
+          thesisRecommendations: true,
         },
       },
     },

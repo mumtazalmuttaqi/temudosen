@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const faculty = searchParams.get("faculty")?.trim() || undefined;
     const serviceId = searchParams.get("serviceId")?.trim() || undefined;
     const page = Math.max(1, Number(searchParams.get("page") || "1") || 1);
-    const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") || "12") || 12));
+    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") || "24") || 24));
 
     const data = await listLecturers({ q, faculty, serviceId, page, limit });
     return jsonOk(data);

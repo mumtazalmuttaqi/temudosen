@@ -37,6 +37,9 @@ export function ProfileSettingsView({
   const [expertise, setExpertise] = useState(user.lecturerProfile?.expertise ?? "");
   const [bio, setBio] = useState(user.lecturerProfile?.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user.lecturerProfile?.avatarUrl ?? "");
+  const [thesisTopicsText, setThesisTopicsText] = useState(
+    (user.lecturerProfile?.thesisRecommendations ?? []).join("\n")
+  );
   const [serviceIds, setServiceIds] = useState<string[]>(selectedServiceIds);
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -64,6 +67,10 @@ export function ProfileSettingsView({
         payload.faculty = faculty;
         payload.bio = bio;
         payload.avatarUrl = avatarUrl || null;
+        payload.thesisRecommendations = thesisTopicsText
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
         payload.serviceIds = serviceIds;
       }
 
@@ -141,14 +148,25 @@ export function ProfileSettingsView({
             ) : null}
 
             {user.lecturerProfile ? (
-              <div className="space-y-1.5">
-                <Label htmlFor="profile-nidn">NIDN / NIP</Label>
-                <Input
-                  id="profile-nidn"
-                  value={user.lecturerProfile.lecturerNumber}
-                  disabled
-                  className="bg-slate-100"
-                />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="profile-nidn">NIDN</Label>
+                  <Input
+                    id="profile-nidn"
+                    value={user.lecturerProfile.lecturerNumber}
+                    disabled
+                    className="bg-slate-100"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="profile-nip">NIP</Label>
+                  <Input
+                    id="profile-nip"
+                    value={user.lecturerProfile.nip ?? "-"}
+                    disabled
+                    className="bg-slate-100"
+                  />
+                </div>
               </div>
             ) : null}
 
@@ -212,6 +230,17 @@ export function ProfileSettingsView({
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Jelaskan fokus bimbingan dan arahan konsultasi Anda..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="profile-topics">
+                    Rekomendasi Topik / Judul Skripsi (satu topik per baris)
+                  </Label>
+                  <Textarea
+                    id="profile-topics"
+                    value={thesisTopicsText}
+                    onChange={(e) => setThesisTopicsText(e.target.value)}
+                    placeholder="Contoh:&#10;Rekomendasi 1&#10;Rekomendasi 2&#10;Rekomendasi 3"
                   />
                 </div>
                 <div className="space-y-1.5">

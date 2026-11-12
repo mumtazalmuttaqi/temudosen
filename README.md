@@ -105,9 +105,7 @@ Akses aplikasi pada [http://localhost:3000](http://localhost:3000).
 | Peran | Email | Kata Sandi |
 | :--- | :--- | :--- |
 | Administrator | `admin@temudosen.ac.id` | `DemoAdmin123!` |
-| Dosen 1 (FIK) | `budi.santoso@temudosen.ac.id` | `DemoDosen123!` |
-| Dosen 2 (FIK) | `siti.rahma@temudosen.ac.id` | `DemoDosen123!` |
-| Dosen 3 (FT) | `hendra.wijaya@temudosen.ac.id` | `DemoDosen123!` |
+| Dosen (23 akun sesuai PDF) | `ar.razi@unimal.ac.id`, `asrianda@unimal.ac.id`, `defryhamdhana@unimal.ac.id`, ..., `zarayunizar@unimal.ac.id` | `DemoDosen123!` |
 | Mahasiswa 1–5 | `andi.pratama@mhs.temudosen.ac.id` s.d. `eka.putri@mhs.temudosen.ac.id` | `DemoMhs123!` |
 
 ---

@@ -9,7 +9,21 @@ export async function listLecturers(params: {
   page?: number;
   limit?: number;
 }) {
-  const { q, faculty, serviceId, page = 1, limit = 12 } = params;
+  const { q, faculty, serviceId, page = 1, limit = 24 } = params;
+
+  let topicMatchedIds: string[] = [];
+  if (q) {
+    const pattern = `%${q}%`;
+    const rows = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT "id"
+      FROM "lecturer_profiles"
+      WHERE EXISTS (
+        SELECT 1 FROM unnest("thesis_recommendations") AS rec
+        WHERE rec ILIKE ${pattern}
+      )
+    `;
+    topicMatchedIds = rows.map((r) => r.id);
+  }
 
   const where: Prisma.LecturerProfileWhereInput = {
     user: { status: "ACTIVE", role: "LECTURER" },
@@ -27,6 +41,9 @@ export async function listLecturers(params: {
             { user: { name: { contains: q, mode: "insensitive" } } },
             { expertise: { contains: q, mode: "insensitive" } },
             { faculty: { contains: q, mode: "insensitive" } },
+            { lecturerNumber: { contains: q, mode: "insensitive" } },
+            { nip: { contains: q, mode: "insensitive" } },
+            ...(topicMatchedIds.length > 0 ? [{ id: { in: topicMatchedIds } }] : []),
           ],
         }
       : {}),

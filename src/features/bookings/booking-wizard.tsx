@@ -26,6 +26,7 @@ export interface WizardLecturer {
   name: string;
   faculty: string;
   expertise: string;
+  thesisRecommendations: string[];
   serviceIds: string[];
 }
 
@@ -59,6 +60,7 @@ export function BookingWizard({
   initialLecturerId,
   initialServiceId,
   initialStartAt,
+  initialTopic,
   timezone = "Asia/Jakarta",
   pendingHoldHours = 24,
 }: {
@@ -67,6 +69,7 @@ export function BookingWizard({
   initialLecturerId?: string;
   initialServiceId?: string;
   initialStartAt?: string;
+  initialTopic?: string;
   timezone?: string;
   pendingHoldHours?: number;
 }) {
@@ -77,11 +80,12 @@ export function BookingWizard({
     return 1;
   });
 
+  const [lecturerSearch, setLecturerSearch] = useState("");
   const [lecturerId, setLecturerId] = useState(initialLecturerId ?? "");
   const [serviceId, setServiceId] = useState(initialServiceId ?? "");
   const [selectedDateKey, setSelectedDateKey] = useState<string>("");
   const [startAt, setStartAt] = useState(initialStartAt ?? "");
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(initialTopic ?? "");
   const [additionalNotes, setAdditionalNotes] = useState("");
 
   const [slots, setSlots] = useState<AvailableSlot[]>([]);
@@ -316,39 +320,56 @@ export function BookingWizard({
             <CardTitle>Langkah 1: Pilih Dosen Pembimbing / Konsultasi</CardTitle>
             <CardDescription>Pilih dosen yang ingin Anda temui.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            {lecturers.map((lec) => {
-              const selected = lecturerId === lec.id;
-              return (
-                <button
-                  key={lec.id}
-                  type="button"
-                  onClick={() => {
-                    setLecturerId(lec.id);
-                    setServiceId("");
-                    setStartAt("");
-                    setStep(2);
-                  }}
-                  className={cn(
-                    "text-left rounded-xl border p-4 transition-all cursor-pointer",
-                    selected
-                      ? "border-[#143359] bg-blue-50/40 ring-2 ring-[#143359]/20"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#143359] text-xs font-bold text-white">
-                      {getInitials(lec.name)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">{lec.name}</p>
-                      <p className="text-xs text-slate-500">{lec.faculty}</p>
-                      <p className="text-xs text-blue-700 mt-1">{lec.expertise}</p>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+          <CardContent className="space-y-4">
+            <Input
+              placeholder="Cari nama dosen atau bidang keahlian..."
+              value={lecturerSearch}
+              onChange={(e) => setLecturerSearch(e.target.value)}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {lecturers
+                .filter((lec) => {
+                  const needle = lecturerSearch.trim().toLowerCase();
+                  if (!needle) return true;
+                  return (
+                    lec.name.toLowerCase().includes(needle) ||
+                    lec.expertise.toLowerCase().includes(needle) ||
+                    lec.faculty.toLowerCase().includes(needle)
+                  );
+                })
+                .map((lec) => {
+                  const selected = lecturerId === lec.id;
+                  return (
+                    <button
+                      key={lec.id}
+                      type="button"
+                      onClick={() => {
+                        setLecturerId(lec.id);
+                        setServiceId("");
+                        setStartAt("");
+                        setStep(2);
+                      }}
+                      className={cn(
+                        "text-left rounded-xl border p-4 transition-all cursor-pointer",
+                        selected
+                          ? "border-[#143359] bg-blue-50/40 ring-2 ring-[#143359]/20"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#143359] text-xs font-bold text-white">
+                          {getInitials(lec.name)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900">{lec.name}</p>
+                          <p className="text-xs text-slate-500">{lec.faculty}</p>
+                          <p className="text-xs text-blue-700 mt-1 line-clamp-2">{lec.expertise}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
           </CardContent>
         </Card>
       ) : null}
@@ -504,6 +525,26 @@ export function BookingWizard({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {selectedLecturer && selectedLecturer.thesisRecommendations.length > 0 ? (
+              <div className="space-y-2 rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+                <p className="text-xs font-semibold text-[#143359]">
+                  Pilih cepat rekomendasi topik skripsi dari {selectedLecturer.name}:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedLecturer.thesisRecommendations.map((rec, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setTopic(rec.slice(0, 200))}
+                      className="rounded-md border border-blue-200 bg-white px-2.5 py-1 text-left text-xs text-slate-700 hover:bg-blue-50 cursor-pointer"
+                    >
+                      {rec.length > 90 ? `${rec.slice(0, 90)}...` : rec}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <div className="space-y-1.5">
               <Label htmlFor="booking-topic">Topik / Tujuan Konsultasi *</Label>
               <Input

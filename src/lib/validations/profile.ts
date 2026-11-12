@@ -4,8 +4,9 @@ export const updateProfileSchema = z.object({
   name: z.string().trim().min(3, "Nama minimal 3 karakter.").max(120),
   programStudy: z.string().trim().min(2).max(120).optional(),
   faculty: z.string().trim().min(2).max(120).optional(),
-  expertise: z.string().trim().min(2).max(250).optional(),
+  expertise: z.string().trim().min(2).max(1000).optional(),
   bio: z.string().trim().max(2000).optional().nullable(),
+  thesisRecommendations: z.array(z.string().trim().min(1).max(600)).max(10).optional(),
   avatarUrl: z
     .string()
     .trim()

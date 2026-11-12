@@ -21,10 +21,12 @@ import { formatDateTime, getInitials } from "@/lib/utils";
 interface LecturerItem {
   id: string;
   lecturerNumber: string;
+  nip: string | null;
   expertise: string;
   faculty: string;
   bio: string | null;
   avatarUrl: string | null;
+  thesisRecommendations: string[];
   user: { id: string; name: string; email: string };
   lecturerServices: Array<{
     service: { id: string; name: string; durationMinutes: number; description: string | null };
@@ -60,7 +62,7 @@ export function LecturerDirectoryClient({
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams();
+        const params = new URLSearchParams({ limit: "30" });
         if (q.trim()) params.set("q", q.trim());
         if (faculty !== "ALL") params.set("faculty", faculty);
         if (serviceId !== "ALL") params.set("serviceId", serviceId);
@@ -95,7 +97,7 @@ export function LecturerDirectoryClient({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
-              placeholder="Cari nama dosen atau bidang keahlian..."
+              placeholder="Cari nama, NIP/NIDN, keahlian, atau topik skripsi..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="pl-9"
@@ -159,11 +161,30 @@ export function LecturerDirectoryClient({
                   <div className="min-w-0">
                     <h3 className="font-semibold text-slate-900 leading-snug">{lec.user.name}</h3>
                     <p className="text-xs text-slate-500 mt-0.5">{lec.faculty}</p>
-                    <p className="text-xs font-medium text-blue-700 mt-1">{lec.expertise}</p>
+                    <p className="text-[11px] font-mono text-slate-500 mt-0.5">
+                      NIDN: {lec.lecturerNumber}
+                      {lec.nip ? ` • NIP: ${lec.nip}` : ""}
+                    </p>
+                    <p className="text-xs font-medium text-blue-700 mt-1 line-clamp-3">
+                      {lec.expertise}
+                    </p>
                   </div>
                 </div>
 
-                {lec.bio ? (
+                {lec.thesisRecommendations.length > 0 ? (
+                  <div className="space-y-1 rounded-lg border border-blue-100 bg-blue-50/40 p-2.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-[#143359]">
+                      Rekomendasi Topik Skripsi ({lec.thesisRecommendations.length})
+                    </p>
+                    <ul className="space-y-1 text-xs text-slate-700 list-disc pl-4">
+                      {lec.thesisRecommendations.slice(0, 3).map((rec, idx) => (
+                        <li key={idx} className="line-clamp-2">
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : lec.bio ? (
                   <p className="text-sm text-slate-600 line-clamp-3">{lec.bio}</p>
                 ) : null}
 

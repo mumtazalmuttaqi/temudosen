@@ -32,11 +32,11 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page).toHaveURL(/\/login/);
 
     // 2. Login Dosen
-    await loginAs(page, "budi.santoso@temudosen.ac.id", "DemoDosen123!");
+    await loginAs(page, "ar.razi@unimal.ac.id", "DemoDosen123!");
     await expect(page).toHaveURL(/\/lecturer\/dashboard/);
-    await expect(page.getByRole("heading", { name: /Selamat datang, Dr\. Budi Santoso/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Selamat datang, Ar Razi/i })).toBeVisible();
 
-    await page.getByRole("button", { name: /Dr\. Budi Santoso/i }).click();
+    await page.getByRole("button", { name: /Ar Razi/i }).click();
     await page.getByRole("menuitem", { name: /Keluar/i }).click();
     await expect(page).toHaveURL(/\/login/);
 
@@ -46,7 +46,7 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page.getByRole("heading", { name: /Panel Administrator Kampus/i })).toBeVisible();
 
     await page.goto("/admin/users");
-    await expect(page.getByText("Dr. Budi Santoso, M.Kom.")).toBeVisible();
+    await expect(page.getByText("Ar Razi, S.T., M.Cs")).toBeVisible();
 
     await page.goto("/admin/reports");
     await expect(page.getByText("Total Booking", { exact: true })).toBeVisible();
@@ -65,11 +65,12 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page).toHaveURL(/\/student\/dashboard/);
 
     await page.goto("/student/lecturers");
-    await page.getByLabel("Cari dosen").fill("Siti Rahma");
-    await expect(page.getByText("Dr. Siti Rahma, M.T.")).toBeVisible();
-    await expect(page.getByText("Dr. Budi Santoso, M.Kom.")).toHaveCount(0);
+    await page.getByLabel("Cari dosen").fill("Zahratul Fitri");
+    await expect(page.getByText("Zahratul Fitri")).toBeVisible();
+    await expect(page.getByText("Ar Razi, S.T., M.Cs")).toHaveCount(0);
+    await expect(page.getByText(/Generative AI dan LLM untuk pelayanan publik/i)).toBeVisible();
 
-    // Klik Buat Booking untuk Dr. Siti Rahma
+    // Klik Buat Booking untuk Zahratul Fitri
     await page.getByRole("link", { name: "Buat Booking" }).first().click();
     await expect(page).toHaveURL(/\/student\/book/);
 
@@ -97,8 +98,8 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await page.getByRole("menuitem", { name: /Keluar/i }).click();
     await expect(page).toHaveURL(/\/login/);
 
-    // 2. Dosen Dr. Siti Rahma login, setujui booking, tandai selesai, dan isi catatan terpisah
-    await loginAs(page, "siti.rahma@temudosen.ac.id", "DemoDosen123!");
+    // 2. Dosen Zahratul Fitri login, setujui booking, tandai selesai, dan isi catatan terpisah
+    await loginAs(page, "zahratulfitri@unimal.ac.id", "DemoDosen123!");
     await expect(page).toHaveURL(/\/lecturer\/dashboard/);
 
     await page.goto("/lecturer/requests");
@@ -128,7 +129,7 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page.getByText(/Catatan konsultasi berhasil disimpan/i).first()).toBeVisible();
 
     // Logout dosen
-    await page.getByRole("button", { name: /Dr\. Siti Rahma/i }).click();
+    await page.getByRole("button", { name: /Zahratul Fitri/i }).click();
     await page.getByRole("menuitem", { name: /Keluar/i }).click();
     await expect(page).toHaveURL(/\/login/);
 

@@ -8,7 +8,7 @@ import { getCampusPolicy } from "@/server/policies/settings-service";
 async function StudentBookContent({
   searchParams,
 }: {
-  searchParams: Promise<{ lecturerId?: string; serviceId?: string; startAt?: string }>;
+  searchParams: Promise<{ lecturerId?: string; serviceId?: string; startAt?: string; topic?: string }>;
 }) {
   await requirePageUser(["STUDENT"]);
   const sp = await searchParams;
@@ -37,12 +37,14 @@ async function StudentBookContent({
         name: l.user.name,
         faculty: l.faculty,
         expertise: l.expertise,
+        thesisRecommendations: l.thesisRecommendations,
         serviceIds: l.lecturerServices.map((ls) => ls.serviceId),
       }))}
       services={services}
       initialLecturerId={sp.lecturerId}
       initialServiceId={sp.serviceId}
       initialStartAt={sp.startAt}
+      initialTopic={sp.topic}
       timezone={policy.campusTimezone}
       pendingHoldHours={policy.pendingHoldHours}
     />
@@ -52,7 +54,7 @@ async function StudentBookContent({
 export default function StudentBookPage({
   searchParams,
 }: {
-  searchParams: Promise<{ lecturerId?: string; serviceId?: string; startAt?: string }>;
+  searchParams: Promise<{ lecturerId?: string; serviceId?: string; startAt?: string; topic?: string }>;
 }) {
   return (
     <Suspense fallback={<DashboardSkeleton />}>

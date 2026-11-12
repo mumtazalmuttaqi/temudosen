@@ -32,6 +32,7 @@ export async function listUsersAdmin(params: {
             { email: { contains: q, mode: "insensitive" } },
             { studentProfile: { studentNumber: { contains: q, mode: "insensitive" } } },
             { lecturerProfile: { lecturerNumber: { contains: q, mode: "insensitive" } } },
+            { lecturerProfile: { nip: { contains: q, mode: "insensitive" } } },
           ],
         }
       : {}),
@@ -117,7 +118,16 @@ export async function createUserAdmin(params: {
       select: { id: true },
     });
     if (existingNidn) {
-      throw new ConflictError("NIDN/NIP dosen sudah terdaftar.");
+      throw new ConflictError("NIDN dosen sudah terdaftar.");
+    }
+    if (input.nip) {
+      const existingNip = await prisma.lecturerProfile.findUnique({
+        where: { nip: input.nip },
+        select: { id: true },
+      });
+      if (existingNip) {
+        throw new ConflictError("NIP dosen sudah terdaftar.");
+      }
     }
   }
 
@@ -152,9 +162,11 @@ export async function createUserAdmin(params: {
               lecturerProfile: {
                 create: {
                   lecturerNumber: input.lecturerNumber!,
+                  nip: input.nip || null,
                   expertise: input.expertise!,
                   faculty: input.faculty!,
                   bio: input.bio || null,
+                  thesisRecommendations: input.thesisRecommendations ?? [],
                   lecturerServices: {
                     create: activeServices.map((s) => ({ serviceId: s.id })),
                   },
@@ -245,9 +257,13 @@ export async function updateUserAdmin(params: {
           ? {
               lecturerProfile: {
                 update: {
+                  ...(input.nip !== undefined ? { nip: input.nip } : {}),
                   ...(input.expertise !== undefined ? { expertise: input.expertise } : {}),
                   ...(input.faculty !== undefined ? { faculty: input.faculty } : {}),
                   ...(input.bio !== undefined ? { bio: input.bio } : {}),
+                  ...(input.thesisRecommendations !== undefined
+                    ? { thesisRecommendations: input.thesisRecommendations }
+                    : {}),
                 },
               },
             }

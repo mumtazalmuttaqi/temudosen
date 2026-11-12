@@ -13,6 +13,7 @@ export async function updateMyProfile(params: {
     expertise?: string;
     bio?: string | null;
     avatarUrl?: string | null;
+    thesisRecommendations?: string[];
     serviceIds?: string[];
   };
   ipAddress?: string | null;
@@ -42,6 +43,9 @@ export async function updateMyProfile(params: {
                   ...(input.faculty ? { faculty: input.faculty } : {}),
                   ...(input.bio !== undefined ? { bio: input.bio } : {}),
                   ...(input.avatarUrl !== undefined ? { avatarUrl: input.avatarUrl } : {}),
+                  ...(input.thesisRecommendations !== undefined
+                    ? { thesisRecommendations: input.thesisRecommendations }
+                    : {}),
                 },
               },
             }

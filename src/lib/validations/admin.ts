@@ -9,9 +9,11 @@ export const createUserSchema = z.object({
   studentNumber: z.string().trim().max(30).optional(),
   programStudy: z.string().trim().max(120).optional(),
   lecturerNumber: z.string().trim().max(30).optional(),
-  expertise: z.string().trim().max(250).optional(),
+  nip: z.string().trim().max(30).optional().nullable(),
+  expertise: z.string().trim().max(1000).optional(),
   faculty: z.string().trim().max(120).optional(),
   bio: z.string().trim().max(2000).optional(),
+  thesisRecommendations: z.array(z.string().trim().min(1).max(600)).max(10).optional(),
 });
 
 export const updateUserSchema = z.object({
@@ -20,8 +22,10 @@ export const updateUserSchema = z.object({
   role: z.enum(["STUDENT", "LECTURER", "ADMIN"]).optional(),
   programStudy: z.string().trim().max(120).optional(),
   faculty: z.string().trim().max(120).optional(),
-  expertise: z.string().trim().max(250).optional(),
+  nip: z.string().trim().max(30).optional().nullable(),
+  expertise: z.string().trim().max(1000).optional(),
   bio: z.string().trim().max(2000).optional().nullable(),
+  thesisRecommendations: z.array(z.string().trim().min(1).max(600)).max(10).optional(),
 });
 
 export const createServiceSchema = z.object({
