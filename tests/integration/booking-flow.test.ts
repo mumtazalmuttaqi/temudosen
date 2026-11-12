@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import bcrypt from "bcryptjs";
+import { verifyPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/db/prisma";
 import type { AuthenticatedUser } from "@/lib/auth/session";
 import { createLecturerAvailability } from "@/server/services/availability-service";
@@ -12,6 +13,7 @@ import {
 } from "@/server/services/booking-service";
 import { upsertConsultationNotes } from "@/server/services/consultation-service";
 import { ConflictError, DomainError, ForbiddenError } from "@/server/services/errors";
+import { changeMyPassword } from "@/server/services/profile-service";
 
 describe("Integration Tests — PostgreSQL Booking Flow, Concurrency & Security", () => {
   let student1!: AuthenticatedUser;
@@ -309,6 +311,51 @@ describe("Integration Tests — PostgreSQL Booking Flow, Concurrency & Security"
         VALUES (gen_random_uuid(), ${lecturer1.id}::uuid, 'INVALID-ROLE-NIM', 'IF', 'FIK', NOW())
       `
     ).rejects.toThrow();
+  });
+
+  it("mengizinkan dosen dengan password default password123 mengubah kata sandinya sendiri", async () => {
+    const suffix = Date.now();
+    const defaultHash = await bcrypt.hash("password123", 10);
+    const tempLecturer = await prisma.user.create({
+      data: {
+        name: "Dosen Ubah Password",
+        email: `lec.pwd.${suffix}@test.ac.id`,
+        passwordHash: defaultHash,
+        role: "LECTURER",
+        status: "ACTIVE",
+        lecturerProfile: {
+          create: {
+            lecturerNumber: `TST-LP-${suffix}`,
+            expertise: "Sistem Informasi",
+            faculty: "FT",
+          },
+        },
+      },
+      include: { studentProfile: true, lecturerProfile: true },
+    });
+    createdUserIds.push(tempLecturer.id);
+
+    await expect(
+      changeMyPassword({
+        actor: tempLecturer,
+        currentPassword: "salah-password",
+        newPassword: "DosenCustom99!",
+      })
+    ).rejects.toThrow(DomainError);
+
+    const res = await changeMyPassword({
+      actor: tempLecturer,
+      currentPassword: "password123",
+      newPassword: "DosenCustom99!",
+    });
+    expect(res).toEqual({ changed: true });
+
+    const refreshed = await prisma.user.findUniqueOrThrow({
+      where: { id: tempLecturer.id },
+      select: { passwordHash: true },
+    });
+    expect(await verifyPassword("password123", refreshed.passwordHash)).toBe(false);
+    expect(await verifyPassword("DosenCustom99!", refreshed.passwordHash)).toBe(true);
   });
 });
 

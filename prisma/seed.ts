@@ -326,7 +326,7 @@ async function main() {
 
   const [adminHash, lecturerHash, studentHash] = await Promise.all([
     bcrypt.hash("DemoAdmin123!", 10),
-    bcrypt.hash("DemoDosen123!", 10),
+    bcrypt.hash("password123", 10),
     bcrypt.hash("DemoMhs123!", 10),
   ]);
 
@@ -420,11 +420,18 @@ async function main() {
 
     let userRecord;
     if (existing && existing.lecturerProfile) {
+      // Update accounts still using the legacy default password (or when reset is requested)
+      // while preserving passwords that individual lecturers have already customized.
+      const shouldSetDefaultPassword =
+        process.env.SEED_RESET_PASSWORDS === "true" ||
+        (await bcrypt.compare("DemoDosen123!", existing.passwordHash));
+
       userRecord = await prisma.user.update({
         where: { id: existing.id },
         data: {
           name: spec.name,
           status: "ACTIVE",
+          ...(shouldSetDefaultPassword ? { passwordHash: lecturerHash } : {}),
           lecturerProfile: {
             update: {
               lecturerNumber: spec.nidn,

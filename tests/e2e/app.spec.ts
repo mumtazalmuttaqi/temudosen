@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 async function loginAs(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -32,7 +34,7 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page).toHaveURL(/\/login/);
 
     // 2. Login Dosen
-    await loginAs(page, "ar.razi@unimal.ac.id", "DemoDosen123!");
+    await loginAs(page, "ar.razi@unimal.ac.id", "password123");
     await expect(page).toHaveURL(/\/lecturer\/dashboard/);
     await expect(page.getByRole("heading", { name: /Selamat datang, Ar Razi/i })).toBeVisible();
 
@@ -99,7 +101,7 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page).toHaveURL(/\/login/);
 
     // 2. Dosen Zahratul Fitri login, setujui booking, tandai selesai, dan isi catatan terpisah
-    await loginAs(page, "zahratulfitri@unimal.ac.id", "DemoDosen123!");
+    await loginAs(page, "zahratulfitri@unimal.ac.id", "password123");
     await expect(page).toHaveURL(/\/lecturer\/dashboard/);
 
     await page.goto("/lecturer/requests");
@@ -140,6 +142,65 @@ test.describe("TemuDosen End-to-End Flow", () => {
     await expect(page.getByText(uniqueTopic)).toBeVisible();
     await expect(page.getByText(publicNote)).toBeVisible();
     await expect(page.getByText(secretNote)).toHaveCount(0);
+  });
+
+  test("dosen dapat login dengan password123 lalu mengubah kata sandinya di halaman profil", async ({ page }) => {
+    try {
+      if (!process.env.DATABASE_URL && typeof process.loadEnvFile === "function") {
+        process.loadEnvFile();
+      }
+    } catch {
+      // Abaikan jika .env tidak ada atau DATABASE_URL sudah diset
+    }
+
+    const prisma = new PrismaClient();
+    const lecturerEmail = "ar.razi@unimal.ac.id";
+    const newPassword = "DosenBaru123!";
+
+    try {
+      await loginAs(page, lecturerEmail, "password123");
+      await expect(page).toHaveURL(/\/lecturer\/dashboard/);
+
+      await page.goto("/lecturer/profile");
+      await expect(page.getByText(/Ubah Kata Sandi/i).first()).toBeVisible();
+
+      const passwordInputs = page.locator('input[type="password"]');
+      const inputCount = await passwordInputs.count();
+      expect(inputCount).toBeGreaterThanOrEqual(2);
+
+      await passwordInputs.nth(0).fill("password123");
+      await passwordInputs.nth(1).fill(newPassword);
+      if (inputCount >= 3) {
+        await passwordInputs.nth(2).fill(newPassword);
+      }
+
+      const submitBtn = passwordInputs.first().locator("xpath=ancestor::form").locator('button[type="submit"]');
+      const [pwdResponse] = await Promise.all([
+        page.waitForResponse((res) => res.url().includes("/api/me/password") && res.request().method() === "POST"),
+        submitBtn.click(),
+      ]);
+      expect(pwdResponse.status()).toBe(200);
+
+      // Logout dan verifikasi password lama sudah tidak berlaku, sementara password baru berhasil masuk
+      await page.getByRole("button", { name: /Ar Razi/i }).click();
+      await page.getByRole("menuitem", { name: /Keluar/i }).click();
+      await expect(page).toHaveURL(/\/login/);
+
+      await loginAs(page, lecturerEmail, "password123");
+      await expect(page).toHaveURL(/\/login/);
+
+      await loginAs(page, lecturerEmail, newPassword);
+      await expect(page).toHaveURL(/\/lecturer\/dashboard/);
+      await expect(page.getByRole("heading", { name: /Selamat datang, Ar Razi/i })).toBeVisible();
+    } finally {
+      // Kembalikan password akun demo dosen ke default awal agar state seed tetap bersih
+      const defaultHash = await bcrypt.hash("password123", 10);
+      await prisma.user.update({
+        where: { email: lecturerEmail },
+        data: { passwordHash: defaultHash },
+      });
+      await prisma.$disconnect();
+    }
   });
 });
 
