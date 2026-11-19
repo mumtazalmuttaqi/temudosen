@@ -1,0 +1,53 @@
+name: CI Quality & Security Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, Lint, Test & Build
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/temudosen_test?schema=public"
+      SESSION_SECRET: "ci-test-session-secret-must-be-at-least-32-chars-long"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: TypeScript Strict Check
+        run: pnpm typecheck
+
+      - name: ESLint Code Quality Check
+        run: pnpm lint
+
+      - name: Unit Tests
+        run: pnpm test:unit
+
+      - name: Production Build Check
+        run: pnpm build

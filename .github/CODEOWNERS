@@ -1,0 +1,9 @@
+# Seluruh file di repository wajib di-review atau disetujui oleh pemilik repository
+* @mumtazalmuttaqi
+
+# File konfigurasi sensitif, autentikasi, dan skema database
+/prisma/ @mumtazalmuttaqi
+/src/lib/auth/ @mumtazalmuttaqi
+/src/lib/permissions/ @mumtazalmuttaqi
+/src/server/policies/ @mumtazalmuttaqi
+/.github/ @mumtazalmuttaqi

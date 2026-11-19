@@ -22,17 +22,69 @@
 
 # misc
 .DS_Store
-*.pem
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# debug
+# security & credentials
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.jks
+*.keystore
+id_rsa*
+id_ecdsa*
+id_ed25519*
+secrets.*
+credentials.*
+
+# database local files & backups (excluding prisma migrations)
+*.dump
+*.sql.gz
+*.sql.tar
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-journal
+
+# debug & logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
+# env files (strictly excluded except template)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
 .env*
 !.env.example
+*.env
+*.env.*
+
+# editor & ide
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+*.backup
+/scratch/
+/tmp/
+/temp/
 
 # playwright
 /playwright-report
