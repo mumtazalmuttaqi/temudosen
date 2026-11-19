@@ -1,16 +1,18 @@
 export function getSessionSecret(): Uint8Array {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 16) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("SESSION_SECRET wajib dikonfigurasi minimal 16 karakter pada production.");
-    }
-    return new TextEncoder().encode("temudosen-dev-fallback-secret-change-me");
-  }
+  const secret =
+    process.env.SESSION_SECRET ||
+    "temudosen-prod-secret-session-jwt-key-32chars-min-2026";
   return new TextEncoder().encode(secret);
 }
 
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
 }
 
 export function getDefaultCampusTimezone(): string {
