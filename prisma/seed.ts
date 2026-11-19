@@ -301,8 +301,10 @@ const PDF_LECTURERS: PdfLecturerSpec[] = [
 ];
 
 async function main() {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("Seed development tidak boleh dijalankan di environment production!");
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    throw new Error(
+      "Seed development tidak boleh dijalankan di environment production kecuali ALLOW_PRODUCTION_SEED=true disetel!"
+    );
   }
 
   console.log("Memulai seeding database TemuDosen (23 dosen sesuai data PDF)...");
