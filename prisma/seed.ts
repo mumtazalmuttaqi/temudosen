@@ -326,10 +326,14 @@ async function main() {
     },
   });
 
+  const adminRawPassword = process.env.SEED_ADMIN_PASSWORD || "DemoAdmin123!";
+  const lecturerRawPassword = process.env.SEED_LECTURER_PASSWORD || "password123";
+  const studentRawPassword = process.env.SEED_STUDENT_PASSWORD || "DemoMhs123!";
+
   const [adminHash, lecturerHash, studentHash] = await Promise.all([
-    bcrypt.hash("DemoAdmin123!", 10),
-    bcrypt.hash("password123", 10),
-    bcrypt.hash("DemoMhs123!", 10),
+    bcrypt.hash(adminRawPassword, 10),
+    bcrypt.hash(lecturerRawPassword, 10),
+    bcrypt.hash(studentRawPassword, 10),
   ]);
 
   // 1. Administrator

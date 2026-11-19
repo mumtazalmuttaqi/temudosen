@@ -99,14 +99,43 @@ Akses aplikasi pada [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Akun Demo Development (`prisma/seed.ts`)
-> **PERINGATAN**: Kredensial berikut hanya dibuat oleh script seed untuk keperluan development/demo. Jangan pernah menjalankan `pnpm db:seed` di production dan ubah/nonaktifkan akun demo sebelum deploy.
+## Akun Demo & Pengujian Lokal (`prisma/seed.ts`)
+> [!CAUTION]
+> **PERINGATAN KEAMANAN PRODUKSI**:
+> - Jangan pernah mempublikasikan kata sandi nyata atau kredensial produksi pada repositori publik.
+> - Di lingkungan lokal/pengembangan, script seed membuat akun awal untuk verifikasi alur kerja.
+> - Pada instalasi produksi atau server yang dapat diakses publik, **wajib segera mengganti seluruh kata sandi bawaan** melalui menu profil atau nonaktifkan akun demo yang tidak digunakan melalui panel Administrator (`/admin/users`).
 
-| Peran | Email | Kata Sandi |
-| :--- | :--- | :--- |
-| Administrator | `admin@temudosen.ac.id` | `DemoAdmin123!` |
-| Dosen (23 akun sesuai PDF) | `ar.razi@unimal.ac.id`, `asrianda@unimal.ac.id`, `defryhamdhana@unimal.ac.id`, ..., `zarayunizar@unimal.ac.id` | `password123` *(default awal; dapat diubah masing-masing di `/lecturer/profile`)* |
-| Mahasiswa 1–5 | `andi.pratama@mhs.temudosen.ac.id` s.d. `eka.putri@mhs.temudosen.ac.id` | `DemoMhs123!` |
+Untuk keperluan pengujian lokal, kredensial akun awal dapat dikonfigurasi melalui variabel lingkungan sebelum menjalankan `pnpm db:seed`:
+
+| Peran Akun | Format Email Demo | Pengaturan Kata Sandi Awal | Catatan Otorisasi |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin@temudosen.ac.id` | Dikonfigurasi via `SEED_ADMIN_PASSWORD` *(atau nilai bawaan seed lokal)* | Kelola pengguna, layanan, log audit, dan pengaturan sistem |
+| **Dosen** *(23 Profil)* | Email institusi resmi dosen (mis. `ar.razi@unimal.ac.id`, dst.) | Dikonfigurasi via `SEED_LECTURER_PASSWORD` *(Wajib diubah oleh masing-masing dosen di `/lecturer/profile`)* | Kelola ketersediaan jadwal, persetujuan booking, catatan privat & publik |
+| **Mahasiswa** | `andi.pratama@mhs.temudosen.ac.id` s.d. `eka.putri@mhs.temudosen.ac.id` | Dikonfigurasi via `SEED_STUDENT_PASSWORD` | Mahasiswa dapat mendaftar mandiri via `/register` (tanpa hak istimewa dosen/admin) |
+
+---
+
+## Kebijakan Keamanan & Perlindungan Data Sensitif
+
+Sistem TemuDosen menerapkan arsitektur pertahanan berlapis (*Defense-in-Depth*) untuk melindungi data akademik kampus:
+1. **Pencegahan Kebocoran Kredensial**:
+   - Seluruh file lingkungan (`.env`, `.env.local`, `.env.production`) dilarang masuk ke repositori melalui konfigurasi [`.gitignore`](.gitignore) yang ketat.
+   - Repositori dilindungi oleh **GitHub Secret Scanning** dan **Push Protection** untuk menggagalkan upaya *push* yang tidak sengaja memuat token atau *connection string*.
+2. **Kerahasiaan Kata Sandi**:
+   - Kata sandi tidak pernah disimpan dalam bentuk teks polos (*plaintext*). Sistem menggunakan algoritma hashing satu arah **bcrypt** dengan faktor *salt rounds* adaptif.
+3. **Pemisahan Privasi Catatan Konsultasi (*Dual-Notes System*)**:
+   - `private_notes`: Catatan evaluasi internal dosen yang **hanya** dapat dibaca oleh dosen pemilik bimbingan. Mahasiswa dan Administrator diblokir dari melihat catatan privat ini.
+   - `student_visible_notes`: Catatan perbaikan dan rekomendasi akademik yang dibagikan secara transparan kepada mahasiswa bimbingan.
+4. **Keamanan Sesi & Proteksi Web**:
+   - Sesi pengguna menggunakan token JWT tertandatangani kriptografis yang disimpan pada cookie dengan atribut `HttpOnly`, `SameSite=Lax`, dan `Secure` (pada koneksi HTTPS produksi).
+   - Validasi ketat *CSRF Origin & Referer* pada seluruh mutasi data (`POST`, `PUT`, `DELETE`).
+   - Pembatasan frekuensi (*Rate Limiting*) sliding-window untuk mencegah serangan *Brute-Force* dan *Credential Stuffing*.
+5. **Integritas Database Level Mesin**:
+   - Memanfaatkan ekstensi PostgreSQL `btree_gist` dan *Exclusion Constraints* (`bookings_no_overlap_active`) untuk mencegah bentrok jadwal (*zero double-booking*) secara fisik di level database.
+   - Trigger PostgreSQL memastikan mahasiswa tidak dapat memanipulasi profil dosen (*role-profile integrity*).
+6. **Pelaporan Celah Keamanan**:
+   - Jika menemukan potensi kerentanan, laporkan secara bertanggung jawab melalui jalur privat yang tercantum pada [SECURITY.md](SECURITY.md). Dilarang membuka *public issue* untuk kerentanan keamanan yang belum tertangani.
 
 ---
 
